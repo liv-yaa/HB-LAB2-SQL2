@@ -54,17 +54,53 @@ def make_new_student(first_name, last_name, github):
     Given a first name, last name, and GitHub account, add student to the
     database and print a confirmation message.
     """
-    pass
+    # query to be run and fed into our execute method as an argument: inserting row of data in our students table
+    QUERY = """
+        INSERT INTO students (first_name, last_name, github)
+          VALUES (:first_name, :last_name, :github)
+        """
+
+    # no need to bound to db cursor because we are inserting rows and thus are automatically placed into a transaction
+    db.session.execute(QUERY, {'first_name': first_name,
+                               'last_name': last_name,
+                               'github': github})
+    # changes are commited
+    db.session.commit()
+
+    # statement to return
+    print(f"Successfully added student: {first_name} {last_name}")
 
 
 def get_project_by_title(title):
     """Given a project title, print information about the project."""
-    pass
+
+    QUERY = """
+        SELECT title, description
+        FROM projects
+        WHERE title = :title
+        """
+
+    db_cursor = db.session.execute(QUERY, {'title': title})
+
+    row = db_cursor.fetchone()
+
+    print(f"Title of project is {row[0]} and description is {row[1]}.")
 
 
 def get_grade_by_github_title(github, title):
     """Print grade student received for a project."""
-    pass
+    QUERY = """
+        SELECT github, grade, project_title
+        JOIN grades
+        WHERE github = :github
+        AND title = :title
+        """
+
+    db_cursor = db.session.execute(QUERY, {'github': github, 'grade': grade, 'project_title': title})
+
+    row = db_cursor.fetchone()
+
+    print(f"{row[0]} received a grade of {row[1]} on {row[2]}")
 
 
 def assign_grade(github, title, grade):
@@ -94,6 +130,14 @@ def handle_input():
         elif command == "new_student":
             first_name, last_name, github = args  # unpack!
             make_new_student(first_name, last_name, github)
+
+        elif command == "title":
+            title = args[0]
+            get_project_by_title(title)
+
+        elif command == "get_grade":
+            github, title = args 
+            get_grade_by_github_title(github, title)
 
         else:
             if command != "quit":
