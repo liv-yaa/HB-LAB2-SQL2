@@ -14,10 +14,12 @@ db = SQLAlchemy()
 def connect_to_db(app):
     """Connect the database to our Flask app."""
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///hackbright'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db.app = app
-    db.init_app(app)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///hackbright' # name of database
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # For a faster connection to
+    # SQL alchemy
+
+    db.app = app # Creating an app attribute on the database instance
+    db.init_app(app) # Then, initializing the app connection to the database
 
 
 def get_student_by_github(github):
@@ -29,10 +31,20 @@ def get_student_by_github(github):
         WHERE github = :github
         """
 
+    # db_cursor is the result of the query (results of the query are called "cursors")
+    # This has been bound to the method that executeds the query on db.session
+    # The QUERY is a constant and it's pased in as the first parameter to that
+    # execute function. The second param is a dictionary. 
+    # The key is the what we will pass to SQLalchemy, it is equal to :github in the SQL Query above 
+    # (: notation is used for SQLAlchemy instead of {{ }} as with Jinja)
+    # The value is what the user will input
     db_cursor = db.session.execute(QUERY, {'github': github})
 
+    # row is bound to an item (tuple of 3 items (first name, last name and github)) that is retrieved by applying the SQLAlchemy method fetchone() on our cursor (results from our query), db_cursor
     row = db_cursor.fetchone()
 
+    # print statement by unpacking row through indexing
+    # could use f string for this print statement as well
     print("Student: {} {}\nGitHub account: {}".format(row[0], row[1], row[2]))
 
 
@@ -91,7 +103,7 @@ def handle_input():
 if __name__ == "__main__":
     connect_to_db(app)
 
-    # handle_input()
+    handle_input()
 
     # To be tidy, we close our database connection -- though,
     # since this is where our program ends, we'd quit anyway.
